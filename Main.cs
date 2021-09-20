@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using ExtLib;
@@ -84,7 +84,8 @@ namespace JudgePracticeMod
 
             {"{Accuracy}", "Accuracy"},
             {"{Progress}", "Progress"},
-            {"{CheckPointCount}", "Check Point Used Count"}
+            {"{CheckPointCount}", "Check Point Used Count"},
+            {"{Timing}", "Hit Timing"}
         };
         public static void UpdateTV()
         {
@@ -487,6 +488,8 @@ namespace JudgePracticeMod
         public int adecimals = 2;
         [Draw("보일 소수점 (진행도) Showing Decimals (Progress)")]
         public int pdecimals = 2;
+        [Draw("보일 소수점 (판정 오차) Showing Decimals (Hit Timing)")]
+        public int tdecimals = 2;
         [Draw("죽으면 횟수 초기화")]
         public bool DeadReset = false;
         [Draw("메뉴로 나가면 초기화")]
@@ -514,6 +517,21 @@ namespace JudgePracticeMod
     }
     public class Patches
     {
+        [HarmonyPatch(typeof(scrPlanet), "SwitchChosen")]
+        public static class TimingP
+        {
+            public static void Postfix(scrPlanet __instance)
+            {
+                if (__instance.controller.gameworld)
+                {
+                    Main.TagValues["{Timing}"] = Math.Round((__instance.angle - __instance.targetExitAngle) * (__instance.controller.isCW ? 1.0 : -1.0) * 60000.0 / (3.1415926535897931 * (double)__instance.conductor.bpm * __instance.controller.speed * (double)__instance.conductor.song.pitch), Main.Set.tdecimals).ToString();
+                }
+                else
+                {
+                    Main.TagValues["{Timing}"] = 0.ToString();
+                }
+            }
+        }
         public static Patches instance;
         public static HitMargin GetHitMargin(float angle)
         {
